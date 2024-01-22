@@ -1,0 +1,39 @@
+name: Create and Publish container image
+
+# This workflow runs manually 
+on:
+  workflow_dispatch:
+
+jobs:
+  create_and_push_image:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION:    ${{ secrets.AWS_DEFAULT_REGION }}
+      AWS_ECR_REPOSITORY:    ${{ secrets.AWS_ECR_REPOSITORY }}
+    defaults:
+        run:
+            working-directory: ./app
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Login to AWS ECR
+        run: |
+          aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com
+
+      - name: Build -> Tag -> Push
+        run: |
+          docker build -t gifmachine:latest .
+          docker tag gifmachine:latest "${AWS_ECR_REPOSITORY}:latest"
+          docker push "${AWS_ECR_REPOSITORY}:latest"

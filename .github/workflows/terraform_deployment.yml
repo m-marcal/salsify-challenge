@@ -1,0 +1,47 @@
+name: Push terraform changes
+
+# This workflow runs manually 
+#  and on change of branch main.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+
+jobs:
+
+  apply-changes:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION:    ${{ secrets.AWS_DEFAULT_REGION }}
+      TF_VAR_database_url:   ${{ secrets.TF_VAR_database_url }}
+    defaults:
+      run:
+        working-directory: ./infra
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: Setup Node (terraform dependency)
+        uses: actions/setup-node@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init & Plan
+        run: |
+          terraform init
+          terraform plan
+
+      - name: Aplly chages
+        run: |
+          terraform apply -auto-approve
