@@ -1,0 +1,32 @@
+name: Trigger ECS deployment
+
+# This workflow runs manually 
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger_deployment:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION:    ${{ secrets.AWS_DEFAULT_REGION }}
+    defaults:
+        run:
+            working-directory: ./infra
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: ECS service deployment
+        run: |
+          aws ecs update-service --cluster salsify-ecs-cluster --service salsify-ecs-service --force-new-deployment
