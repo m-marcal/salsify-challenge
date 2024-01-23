@@ -35,5 +35,5 @@ jobs:
       - name: Build -> Tag -> Push
         run: |
           docker build -t gifmachine:latest .
-          docker tag gifmachine:latest "${AWS_ECR_REPOSITORY}:latest"
-          docker push "${AWS_ECR_REPOSITORY}:latest"
+          docker tag gifmachine:latest "${AWS_ECR_REPOSITORY}/salsify-gifmachine-container:latest"
+          docker push "${AWS_ECR_REPOSITORY}/salsify-gifmachine-container:latest"

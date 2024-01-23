@@ -4,8 +4,8 @@ name: Push terraform changes
 #  and on change of branch main.
 on:
   workflow_dispatch:
-  push:
-    branches: ['main']
+  #push:
+  #  branches: ['main']
 
 jobs:
 
