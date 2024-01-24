@@ -30,6 +30,9 @@ resource "aws_ecs_task_definition" "task" {
 }
 
 resource "aws_ecs_service" "service" {
+  
+  depends_on = [aws_iam_role.ecs_execution_role]
+  
   name            = "${var.project_name}-ecs-service"
   cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.task.arn
@@ -37,12 +40,23 @@ resource "aws_ecs_service" "service" {
   iam_role        = aws_iam_role.ecs_execution_role.name
   desired_count = 2
   
-  depends_on = [aws_iam_role.ecs_execution_role]
 
   load_balancer {
     target_group_arn = aws_lb_target_group.target_group.arn
     container_name   = var.container_name
     container_port   = var.container_port
+  }
+
+
+  #####
+  # deployment specifc
+  #####
+  
+  # update tasks to use a newer Docker image with same image/tag combination (e.g., myimage:latest)
+  force_new_deployment = true
+  deployment_circuit_breaker {
+    enable = true
+    rollback = true # When a service deployment fails, the service is rolled back to the last deployment that completed successfully.
   }
 
 }
